@@ -1,0 +1,25 @@
+# 1. BASE: La dependencia de S.O. (Alpine, la imagen más ligera)
+FROM alpine:latest
+
+# 2. INSTALACIÓN: Instalación de software requerido (NGINX)
+# Usamos 'apk add' para instalar NGINX y las dependencias necesarias.
+# Luego se limpia el caché de apk para reducir el tamaño de la imagen.
+RUN apk update && \
+    apk add nginx && \
+    rm -rf /var/cache/apk/*
+
+# 3. CONFIGURACIÓN: El requisito de configuración de NGINX 
+# En Alpine, el archivo principal de configuración de NGINX está en /etc/nginx/nginx.conf
+COPY config/nginx.conf /etc/nginx/nginx.conf
+
+# 4. CÓDIGO: El requisito de la aplicación (archivos web)
+# NGINX en Alpine por defecto suele servir archivos desde /var/www/localhost/htdocs
+COPY miweb/ /var/www/html/
+
+# 5. INSTRUCCIÓN: Puerto
+# El puerto 80 es el puerto HTTP por defecto que NGINX escucha.
+EXPOSE 80
+
+# 6. INSTRUCCIÓN: Comando para mantener el servidor en ejecución
+# El comando de inicio para NGINX sigue siendo el mismo: forzarlo a primer plano.
+CMD ["nginx", "-g", "daemon off;"]
