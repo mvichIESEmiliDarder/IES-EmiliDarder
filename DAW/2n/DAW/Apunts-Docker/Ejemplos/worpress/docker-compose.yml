@@ -1,0 +1,38 @@
+services:
+  # 1. Servicio de Base de Datos (MySQL o MariaDB)
+  db:
+    image: mariadb:10.6 # Usamos MariaDB, que es un fork popular de MySQL
+    container_name: wordpress_db
+    restart: always
+    environment:
+      # Variables de MySQL/MariaDB para la inicialización
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: wp_password
+    volumes:
+      # Named Volume para la persistencia de datos de la DB (¡Adiós problemas de permisos!)
+      - db_data:/var/lib/mysql
+
+  # 2. Servicio de Aplicación (WordPress con PHP/Apache)
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress_app
+    restart: always
+    ports:
+      - "8080:80" # Mapea el puerto 80 del contenedor al 8080 de tu máquina
+    environment:
+      # Variables de conexión que WordPress usará para conectarse al servicio 'db'
+      WORDPRESS_DB_HOST: db:3306 # El nombre del host es 'db' (nombre del servicio)
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp_password
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      # Bind Mount para archivos de configuración, plugins, temas, etc.
+      - ./wordpress-data:/var/www/html
+    depends_on:
+      - db # Solo asegura el orden de inicio
+
+# Definición de Volúmenes Nombrados
+volumes:
+  db_data:
