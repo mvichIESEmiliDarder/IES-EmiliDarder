@@ -1,0 +1,21 @@
+# 1. BASE: La dependencia de S.O.
+FROM alpine:latest
+
+# 2. INSTALACIÓN: Instalación de software requerido (Apache)
+RUN apk update && \
+    apk add apache2 && \
+    rm -rf /var/cache/apk/* # --- A partir de aquí, la caché se invalida con frecuencia ---
+
+# 3. CONFIGURACIÓN: El requisito de configuración de Apache
+# Colocamos el archivo de configuración personalizado.
+COPY config/httpd.conf /etc/apache2/httpd.conf
+
+# 4. CÓDIGO: El requisito de la aplicación (archivos web)
+# Copiamos todos los archivos del sitio.
+COPY miweb/ /var/www/localhost/htdocs/
+
+# 5. INSTRUCCIÓN: Puerto
+EXPOSE 80
+
+# 6. INSTRUCCIÓN: Comando para mantener el servidor en ejecución
+CMD ["httpd", "-D", "FOREGROUND"]
