@@ -1,0 +1,18 @@
+# Usamos una imagen base ligera de Linux (Alpine)
+FROM alpine:latest
+
+# Establecemos la variable de entorno por defecto
+# Si el usuario no proporciona un valor al ejecutar, este es el que se usará.
+ENV MENSAJE_BIENVENIDA="Mensaje por Defecto de Dockerfile."
+
+# Establecer un Directorio de Trabajo. Si no existe, Docker lo crea.
+WORKDIR /app
+
+# Copiamos nuestro script al contenedor
+COPY ejecutar.sh .
+
+# Le damos permisos de ejecución al script
+RUN chmod +x ejecutar.sh
+
+# Comando para ejecutar el script cuando el contenedor arranque
+CMD ["./ejecutar.sh"]
