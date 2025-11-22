@@ -1,0 +1,25 @@
+# 1. Usar una imagen base oficial de Python
+FROM python:3.9-slim
+
+# 2. Argumento de compilación
+ARG WORKDIRPATH="/app"
+
+# 3. Variable de Entorno: Estará disponible en el contenedor en tiempo de ejecución
+# Este valor será usado por app.py
+ENV GREETING_MSG="¡Hola, mundo de Docker y Flask!"
+
+# 4. Establecer el directorio de trabajo dentro del contenedor
+WORKDIR $WORKDIRPATH
+
+# 5. Copiar los archivos de requisitos e instalar dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 6. Copiar el script de la aplicación
+COPY app.py .
+
+# 7. Exponer el puerto que usa Flask (5000)
+EXPOSE 5000
+
+# 8. Ejecutar el programa con python
+CMD ["python", "app.py"]
