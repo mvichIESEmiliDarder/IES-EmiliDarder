@@ -1,0 +1,56 @@
+# 1. Crea la red llamada xarxa1
+networks:
+  xarxa1:
+    driver: bridge
+
+services:
+
+  # 3. Servicio MySQL (Base de Datos)
+  mysql:
+    image: mysql:8.0
+    container_name: bbdd_mysql
+    restart: unless-stopped
+    environment:
+      # Credenciales usadas en el script PHP
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: tienda_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306" # Expone el puerto por si quieres conectar un cliente externo
+    volumes:
+      # Monta el script SQL para inicializar la BBDD
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - xarxa1
+
+  # 5. Servicio PHP (Servidor de Aplicaciones)
+  php:
+    image: php:8.2-fpm-alpine # Versión ligera de PHP-FPM
+    container_name: servidor_php
+    restart: unless-stopped
+    volumes:
+      # Monta el código fuente en la carpeta estándar de Nginx
+      - ./www:/var/www/html
+    # Necesitamos el cliente mysql para que PHP pueda conectarse
+    depends_on:
+      - mysql
+    networks:
+      - xarxa1
+    
+  # 2. Servicio Nginx (Servidor Web y Proxy)
+  nginx:
+    image: nginx:stable-alpine
+    container_name: servidor_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80" # Expone el puerto 8080 de tu máquina al puerto 80 del contenedor
+    volumes:
+      # Monta el código fuente (para que Nginx lo sirva)
+      - ./www:/var/www/html
+      # Monta la configuración personalizada de Nginx
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php # Nginx necesita que PHP esté listo
+    networks:
+      - xarxa1
