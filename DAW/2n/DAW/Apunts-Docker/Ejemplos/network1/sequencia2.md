@@ -1,15 +1,22 @@
 
-## 0\. Construcció de la Imatge Personalitzada de PHP
+## Estructura de directoris
 
-Utilitzarem el `Dockerfile` del Canvas, que està a la carpeta principal (`.`), per crear una imatge amb l'extensió `mysqli` necessària.
-
-```bash
-docker build -t php-app:latest .
 ```
+.
+├── app_php
+│   ├── Dockerfile
+│   └── index.php
+├── db_mysql
+│   ├── data
+│   └── schema.sql
+└── web_nignx
+    └── nginx.conf
 
------
-
-Ara, aplico els canvis a la teva documentació de passos:
+mkdir app_php
+mkdir db_mysql
+mkdir -p db_mysql/data
+mkdir web_nginx
+```
 
 ## 1\. Creació de la Xarxa
 
@@ -18,8 +25,6 @@ docker network create xarxa1
 ```
 
 ## 2\. Llançament del Contenidor MySQL
-
-
 
 ```bash
 # Cream la carpeta que contindrà la persistència
@@ -38,10 +43,20 @@ docker run -d \
 ```
 
 ## 3\. Llançament del Contenidor de PHP
+### 3.1\. Construcció de la Imatge Personalitzada de PHP
 
-
+Utilitzarem el `Dockerfile` que hem de crear a la carpeta app_php per crear una imatge amb l'extensió `mysqli` necessària.
 
 ```bash
+cd app_php
+docker build -t php-app:latest .
+```
+### 3.2\. Llançam la imatge 
+
+**Atencio!** Ens hem de situar a l'arrel del projecte. 
+
+```bash
+cd ..
 docker run -d \
   --name servidor_php \
   --network xarxa1 \
@@ -63,10 +78,12 @@ docker run -d \
 
 ## 5\. Bolcat de les dades a la BD
 
+Per tal de que la BD tingui informació dins, bolcam una mostra.
+
 ```bash
 docker exec -i bd_mysql mysql -u root -ptoor < ./db_mysql/schema.sql
 ```
 
 -----
 
-Aquesta seqüència de passos hauria d'engegar tot el teu *stack* de manera coherent amb la teva nova estructura de fitxers i resolent tots els errors de dependències (MySQLi) i de configuració de xarxa i credencials que havíem trobat.
+Aquesta seqüència de passos hauria d'engegar tot *l'stack*. És la primera connexió que feim de diversos contenidors en la mateixa xarxa.
