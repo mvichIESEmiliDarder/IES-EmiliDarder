@@ -1,8 +1,8 @@
 <?php
 // Configuración de la Base de Datos
-$servername = "mysql"; // Usamos el nombre del servicio de Docker Compose como hostname
-$username = "user";
-$password = "password";
+$servername = "bd_mysql"; // Usamos el nombre del servicio de Docker Compose como hostname
+$username = "iesemili";
+$password = "iesemili";
 $dbname = "tienda_db";
 
 // Intento de conexión

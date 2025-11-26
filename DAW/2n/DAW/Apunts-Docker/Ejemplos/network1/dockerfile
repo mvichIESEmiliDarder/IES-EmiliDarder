@@ -1,0 +1,9 @@
+# Usa la imagen base oficial de PHP-FPM (Alpine por ser ligera)
+FROM php:8.2-fpm-alpine
+
+# Instala las dependencias necesarias para las extensiones
+RUN apk add --no-cache autoconf gcc g++ make \
+    # Instala las extensiones de MySQL (mysqli y pdo_mysql)
+    && docker-php-ext-install mysqli pdo_mysql \
+    # Limpia las dependencias de compilación para reducir el tamaño de la imagen
+    && apk del autoconf gcc g++ make
