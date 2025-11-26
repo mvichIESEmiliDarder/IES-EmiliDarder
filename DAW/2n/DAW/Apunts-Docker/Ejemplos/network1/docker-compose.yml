@@ -1,56 +1,64 @@
-# 1. Crea la red llamada xarxa1
+# Definimos la red para que todos los servicios se comuniquen
 networks:
   xarxa1:
     driver: bridge
 
 services:
 
-  # 3. Servicio MySQL (Base de Datos)
-  mysql:
+  # 1. Servicio de Base de Datos (MySQL)
+  # Nombre de Host dentro de la red: bd_mysql
+  bd_mysql:
     image: mysql:8.0
-    container_name: bbdd_mysql
+    container_name: bd_mysql
     restart: unless-stopped
     environment:
-      # Credenciales usadas en el script PHP
-      MYSQL_ROOT_PASSWORD: root_password
+      # Credenciales de root y de usuario 'iesemili' (coinciden con index.php)
+      MYSQL_ROOT_PASSWORD: toor
       MYSQL_DATABASE: tienda_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3306:3306" # Expone el puerto por si quieres conectar un cliente externo
+      MYSQL_USER: iesemili
+      MYSQL_PASSWORD: iesemili
     volumes:
-      # Monta el script SQL para inicializar la BBDD
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      # Persistencia de los datos de la BBDD
+      - ./db_mysql/data:/var/lib/mysql
+      # Volcado manual del script SQL
+      - ./db_mysql/schema.sql:/tmp/schema.sql
     networks:
       - xarxa1
 
-  # 5. Servicio PHP (Servidor de Aplicaciones)
-  php:
-    image: php:8.2-fpm-alpine # Versión ligera de PHP-FPM
+  # 2. Servicio de Aplicación (PHP-FPM)
+  # Nombre de Host dentro de la red: servidor_php
+  servidor_php:
+    # Usamos la imagen personalizada que construimos (con la extensión mysqli)
+    build:
+      context: .
+      dockerfile: Dockerfile # Asume que el Dockerfile está en la raíz
     container_name: servidor_php
     restart: unless-stopped
     volumes:
-      # Monta el código fuente en la carpeta estándar de Nginx
-      - ./www:/var/www/html
-    # Necesitamos el cliente mysql para que PHP pueda conectarse
-    depends_on:
-      - mysql
+      # Montaje del código PHP
+      - ./app_php:/var/www/html
     networks:
       - xarxa1
-    
-  # 2. Servicio Nginx (Servidor Web y Proxy)
-  nginx:
+    # Asegura que MySQL esté corriendo antes de que PHP intente conectar
+    depends_on:
+      - bd_mysql
+
+  # 3. Servicio Web (Nginx)
+  # Nombre de Host dentro de la red: servidor_nginx
+  servidor_nginx:
     image: nginx:stable-alpine
     container_name: servidor_nginx
     restart: unless-stopped
     ports:
-      - "8080:80" # Expone el puerto 8080 de tu máquina al puerto 80 del contenedor
+      # Mapeo del puerto 7070 del host al puerto 80 del contenedor
+      - "7070:80" 
     volumes:
-      # Monta el código fuente (para que Nginx lo sirva)
-      - ./www:/var/www/html
-      # Monta la configuración personalizada de Nginx
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - php # Nginx necesita que PHP esté listo
+      # Montaje del código PHP que Nginx servirá
+      - ./app_php:/var/www/html
+      # Montaje de la configuración de Nginx (CORREGIDA para usar servidor_php:9000)
+      - ./web_nignx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - xarxa1
+    # Nginx necesita que PHP esté listo para poder hacer el proxy
+    depends_on:
+      - servidor_php
