@@ -31,7 +31,7 @@ services:
       # El HOST de la DB es el nombre del servicio de la DB (db)
       WORDPRESS_DB_HOST: db:3306 
       WORDPRESS_DB_NAME: wordpress_db
-      WORDPRESS_DB_USER: iesmeili
+      WORDPRESS_DB_USER: iesemili
       WORDPRESS_DB_PASSWORD: iesemili
     volumes:
       # Persistencia de los archivos de WordPress (temas, plugins, uploads)
