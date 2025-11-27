@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Solar 3D</title>
+    <!-- Estilos CSS integrados -->
+    <style>
+        /* Usamos Inter como fuente principal de manera elegante */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden; /* Oculta barras de desplazamiento */
+            background-color: #000000; /* Fondo del espacio */
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Ocultar el cursor sobre el canvas */
+        canvas {
+            cursor: move;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.8); }
+            50% { box-shadow: 0 0 30px rgba(255, 165, 0, 1), 0 0 50px rgba(255, 69, 0, 0.5); }
+            100% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.8); }
+        }
+
+        .sun-effect {
+            animation: pulse 3s infinite ease-in-out;
+            border-radius: 50%;
+        }
+    </style>
+    <!-- Carga de la librería Three.js para renderizado 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="info">
+        Sistema Solar 3D (Sol, Tierra, Luna)
+        <br><small>Mueve el ratón para rotar la cámara.</small>
+    </div>
+
+    <!-- El script principal de JavaScript -->
+    <script>
+        // Variables globales para Three.js
+        let scene, camera, renderer;
+        let sunMesh, earthMesh, moonMesh;
+        let earthOrbitGroup, moonOrbitGroup;
+        let raycaster;
+        let mouse = new THREE.Vector2();
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const rotationSpeed = 0.005;
+
+        // --- Configuración Inicial ---
+        function init() {
+            // 1. Configuración de la Escena
+            scene = new THREE.Scene();
+            // La niebla ayuda a simular la profundidad del espacio
+            scene.fog = new THREE.Fog(0x000000, 1, 1000);
+
+            // 2. Configuración de la Cámara
+            // PerspectiveCamera(FOV, Aspect Ratio, Near Clip, Far Clip)
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 50, 80); // Posición inicial de la cámara
+
+            // 3. Configuración del Renderizador
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            // 4. Raycaster para interacciones (aunque no se use mucho, es buena práctica)
+            raycaster = new THREE.Raycaster();
+
+            createSolarSystem();
+            setupLighting();
+            setupControls();
+
+            // Manejar redimensionamiento de ventana
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Iniciar el bucle de animación
+            animate();
+        }
+
+        // --- Creación de Objetos del Sistema Solar ---
+        function createSolarSystem() {
+            const textureLoader = new THREE.TextureLoader();
+
+            // El SOL (Luz y Malla)
+            // Usamos un Mesh básico, pero la luz es lo principal.
+            const sunGeometry = new THREE.SphereGeometry(10, 32, 32);
+            // El material emite luz (MeshBasicMaterial para que no dependa de otras luces)
+            const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+            sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+            sunMesh.position.set(0, 0, 0); // En el centro del sistema
+            scene.add(sunMesh);
+
+            // Añadir un efecto visual al Sol usando CSS (aunque la luz real es el PointLight)
+            sunMesh.element = document.createElement('div');
+            sunMesh.element.className = 'sun-effect';
+            sunMesh.element.style.width = '20px'; // Ajustar según el tamaño real en la escena
+            sunMesh.element.style.height = '20px';
+
+            // Grupos de órbita (para gestionar el movimiento de traslación)
+
+            // Grupo para la órbita de la Tierra
+            earthOrbitGroup = new THREE.Group();
+            scene.add(earthOrbitGroup);
+
+            // La TIERRA
+            const earthGeometry = new THREE.SphereGeometry(3, 32, 32);
+            // Color base: Azul verdoso
+            const earthMaterial = new THREE.MeshPhongMaterial({ color: 0x0000ff });
+            earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+            // Posición inicial de la Tierra (distancia del Sol)
+            earthMesh.position.x = 40;
+            earthOrbitGroup.add(earthMesh);
+
+            // Grupo para la órbita de la Luna alrededor de la Tierra
+            moonOrbitGroup = new THREE.Group();
+            earthMesh.add(moonOrbitGroup); // El grupo de la Luna se añade a la Tierra
+
+            // La LUNA
+            const moonGeometry = new THREE.SphereGeometry(1, 16, 16);
+            const moonMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+            moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
+            // Posición inicial de la Luna (distancia de la Tierra)
+            moonMesh.position.x = 8;
+            moonOrbitGroup.add(moonMesh);
+
+            // Trazar las órbitas (círculos de referencia)
+            createOrbit(40, 0xffffff, earthOrbitGroup); // Órbita de la Tierra
+            createOrbit(8, 0x888888, earthMesh);      // Órbita de la Luna (relativa a la Tierra)
+        }
+
+        // --- Creación de Órbitas Visuales ---
+        function createOrbit(radius, color, parent) {
+            const segments = 128; // Suficientes segmentos para un círculo suave
+            const material = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.3 });
+            const geometry = new THREE.BufferGeometry().setFromPoints(
+                new Array(segments + 1).fill(null).map((_, i) => {
+                    const angle = (i / segments) * Math.PI * 2;
+                    return new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+                })
+            );
+            const orbit = new THREE.Line(geometry, material);
+            orbit.rotation.x = Math.PI / 2; // Rotar para que esté en el plano XY
+            parent.add(orbit);
+        }
+
+        // --- Iluminación ---
+        function setupLighting() {
+            // Luz puntual en el centro (simulando el Sol)
+            const sunLight = new THREE.PointLight(0xffffff, 2, 0, 0); // Color, Intensidad, Distancia (0=infinita), Decaimiento
+            sunLight.position.set(0, 0, 0);
+            scene.add(sunLight);
+
+            // Luz ambiental tenue para que se vean los planetas en el lado oscuro
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Color gris suave, Intensidad
+            scene.add(ambientLight);
+        }
+
+        // --- Controles de la Cámara (Rotación con el Ratón) ---
+        function setupControls() {
+            renderer.domElement.addEventListener('mousedown', onMouseDown, false);
+            renderer.domElement.addEventListener('mousemove', onMouseMove, false);
+            renderer.domElement.addEventListener('mouseup', onMouseUp, false);
+            renderer.domElement.addEventListener('wheel', onMouseWheel, false);
+        }
+
+        function onMouseDown(event) {
+            isDragging = true;
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging) return;
+
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+
+            // Rotar la escena alrededor del Sol (el origen 0,0,0)
+            const angleX = deltaX * rotationSpeed * 0.1;
+            const angleY = deltaY * rotationSpeed * 0.1;
+
+            // Rotación horizontal (Yaw): Mueve la cámara alrededor del eje Y
+            let currentTheta = Math.atan2(camera.position.x, camera.position.z);
+            let currentRadius = Math.sqrt(camera.position.x * camera.position.x + camera.position.z * camera.position.z);
+            let newTheta = currentTheta + angleX;
+            camera.position.x = currentRadius * Math.sin(newTheta);
+            camera.position.z = currentRadius * Math.cos(newTheta);
+
+            // Rotación vertical (Pitch): Limita la rotación para evitar voltear la cámara
+            let newY = camera.position.y - deltaY * 0.2;
+            camera.position.y = Math.max(1, Math.min(100, newY)); // Limita Y entre 1 y 100
+
+            // Asegurar que la cámara siempre mire al origen (el Sol)
+            camera.lookAt(0, 0, 0);
+
+            previousMousePosition.x = event.clientX;
+            previousMousePosition.y = event.clientY;
+        }
+
+        function onMouseUp(event) {
+            isDragging = false;
+        }
+
+        function onMouseWheel(event) {
+            // Zoom (acercar/alejar) ajustando la posición Z de la cámara
+            const zoomAmount = event.deltaY * 0.05;
+            const distance = camera.position.length();
+            const newDistance = Math.max(10, distance + zoomAmount); // Limitar el zoom para que no se acerque demasiado
+
+            // Mover la cámara a lo largo de su dirección actual
+            camera.position.multiplyScalar(newDistance / distance);
+
+            // Asegurar que la cámara siempre mire al origen (el Sol)
+            camera.lookAt(0, 0, 0);
+        }
+
+        // --- Manejo de Redimensionamiento de Ventana ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Bucle de Animación y Lógica de Movimiento ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Movimiento de Rotación de los cuerpos (sobre su propio eje)
+            sunMesh.rotation.y += 0.001; // El sol rota lentamente
+            earthMesh.rotation.y += 0.01; // La Tierra rota más rápido
+            moonMesh.rotation.y += 0.008; // La Luna rota
+
+            // Movimiento de Traslación (órbita)
+
+            // La Tierra orbita alrededor del Sol
+            // El grupo 'earthOrbitGroup' se encarga de mover a la Tierra en su órbita
+            earthOrbitGroup.rotation.y += 0.003; // Velocidad de traslación de la Tierra
+
+            // La Luna orbita alrededor de la Tierra
+            // El grupo 'moonOrbitGroup' se encarga de mover a la Luna
+            moonOrbitGroup.rotation.y += 0.015; // Velocidad de traslación de la Luna (alrededor de la Tierra)
+
+            // Renderizar la escena
+            renderer.render(scene, camera);
+        }
+
+        // Iniciar la aplicación al cargar la ventana
+        window.onload = init;
+
+    </script>
+</body>
+</html>

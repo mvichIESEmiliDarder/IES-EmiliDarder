@@ -1,0 +1,49 @@
+services:
+  # 1. Servicio de Base de Datos (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: wordpress_mysql
+    restart: unless-stopped
+    environment:
+      # --- Configuración de MySQL ---
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: iesemili
+      MYSQL_PASSWORD: iesemili
+    volumes:
+      # Persistencia de los datos de la DB
+      - db_data:/var/lib/mysql
+    networks:
+      - wordpress_net
+
+  # 2. Servicio de Aplicación (WordPress)
+  wordpress:
+    depends_on:
+      - db # Asegura que la DB se inicie antes que WordPress
+    image: wordpress:latest
+    container_name: iesemili_wordpress
+    restart: unless-stopped
+    ports:
+      # Mapea el puerto 80 del contenedor al puerto 8000 de tu máquina host
+      - "8000:80"
+    environment:
+      # --- Conexión a la Base de Datos ---
+      # El HOST de la DB es el nombre del servicio de la DB (db)
+      WORDPRESS_DB_HOST: db:3306 
+      WORDPRESS_DB_NAME: wordpress_db
+      WORDPRESS_DB_USER: iesmeili
+      WORDPRESS_DB_PASSWORD: iesemili
+    volumes:
+      # Persistencia de los archivos de WordPress (temas, plugins, uploads)
+      - wordpress_data:/var/www/html
+    networks:
+      - wordpress_net
+
+# Definición de Volúmenes y Redes
+volumes:
+  db_data: # Para los datos de MySQL
+  wordpress_data: # Para los archivos de WordPress
+
+networks:
+  wordpress_net:
+    driver: bridge # Red interna para que los contenedores se comuniquen
