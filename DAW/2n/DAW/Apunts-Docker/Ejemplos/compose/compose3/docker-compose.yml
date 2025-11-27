@@ -1,0 +1,62 @@
+version: '3.8'
+
+# Defineix els tres serveis de l'aplicació: la base de dades, el servidor PHP i el servidor web Nginx.
+services:
+
+  # 1. SERVEI DE LA BASE DE DADES MYSQL
+  bd_mysql:
+    image: mysql:8.0
+    container_name: bd_mysql
+    restart: always
+    environment:
+      # Credencials de la base de dades
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: tienda_db
+      MYSQL_USER: iesemili
+      MYSQL_PASSWORD: iesemili
+    volumes:
+      # Volum per a la persistència de dades (data)
+      - ./bd_mysql/data:/var/lib/mysql
+      # Aquesta ruta fa que l'script SQL s'executi automàticament quan s'engega el contenidor per primera vegada.
+      - ./bd_mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - xarxa
+
+  # 2. SERVEI DEL SERVIDOR PHP-FPM
+  servidor_php:
+    # Utilitza el Dockerfile personalitzat per instal·lar l'extensió mysqli
+    build: ./app_php
+    container_name: servidor_php
+    restart: always
+    # El nom del servei 'bd_mysql' serà el nom de host per a la connexió des de PHP.
+    depends_on:
+      - bd_mysql
+    volumes:
+      # Mapeja la carpeta d'aplicació al directori web del contenidor PHP
+      - ./app_php:/var/www/html
+    networks:
+      - xarxa
+      
+  # 3. SERVEI DEL SERVIDOR WEB NGINX (Reverse Proxy)
+  servidor_nginx:
+    image: nginx:stable-alpine
+    container_name: servidor_nginx
+    restart: always
+    # El port 7070 del host es mapeja al port 80 del contenidor.
+    ports:
+      - "7070:80"
+    # Nginx depèn del servidor PHP per servir el contingut dinàmic.
+    depends_on:
+      - servidor_php
+    volumes:
+      # Arxius estàtics i arrel del document.
+      - ./app_php:/var/www/html
+      # Configuració de Nginx per fer de proxy cap al servidor_php
+      - ./web_nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - xarxa
+
+# Definició de la xarxa compartida interna
+networks:
+  xarxa:
+    driver: bridge
