@@ -6,39 +6,36 @@
 ├── app_php
 │   ├── Dockerfile
 │   └── index.php
-├── db_mysql
+├── bd_mysql
 │   ├── data
 │   └── schema.sql
 └── web_nignx
     └── nginx.conf
 
 mkdir app_php
-mkdir db_mysql
-mkdir -p db_mysql/data
+mkdir bd_mysql
+mkdir -p bd_mysql/data
 mkdir web_nginx
 ```
 
 ## 1\. Creació de la Xarxa
 
 ```bash
-docker network create xarxa1
+docker network create xarxa
 ```
 
 ## 2\. Llançament del Contenidor MySQL
 
 ```bash
-# Cream la carpeta que contindrà la persistència
-mkdir -p  db_mysql/data
-
 docker run -d \
   --name bd_mysql \
-  --network xarxa1 \
+  --network xarxa \
   -e MYSQL_ROOT_PASSWORD=toor \
   -e MYSQL_DATABASE=tienda_db \
   -e MYSQL_USER=iesemili \
   -e MYSQL_PASSWORD=iesemili \
-  -v "$(pwd)/db_mysql/data:/var/lib/mysql" \
-  -v "$(pwd)/db_mysql/schema.sql:/tmp/schema.sql" \
+  -v "$(pwd)/bd_mysql/data:/var/lib/mysql" \
+  -v "$(pwd)/bd_mysql/schema.sql:/tmp/schema.sql" \
   mysql:8.0
 ```
 
@@ -59,7 +56,7 @@ docker build -t php-app:latest .
 cd ..
 docker run -d \
   --name servidor_php \
-  --network xarxa1 \
+  --network xarxa \
   -v "$(pwd)/app_php:/var/www/html" \
   php-app:latest
 ```
@@ -69,10 +66,10 @@ docker run -d \
 ```bash
 docker run -d \
   --name servidor_nginx \
-  --network xarxa1 \
+  --network xarxa \
   -p 7070:80 \
   -v "$(pwd)/app_php:/var/www/html" \
-  -v "$(pwd)/web_nignx/nginx.conf:/etc/nginx/conf.d/default.conf" \
+  -v "$(pwd)/web_nginx/nginx.conf:/etc/nginx/conf.d/default.conf" \
   nginx:stable-alpine
 ```
 
@@ -81,7 +78,7 @@ docker run -d \
 Per tal de que la BD tingui informació dins, bolcam una mostra.
 
 ```bash
-docker exec -i bd_mysql mysql -u root -ptoor < ./db_mysql/schema.sql
+docker exec -i bd_mysql mysql -u root -ptoor < ./bd_mysql/schema.sql
 ```
 
 -----
