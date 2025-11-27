@@ -38,7 +38,7 @@ $result = $conn->query($sql);
 <body>
     <h1>✅ Productos de la Base de Datos (MySQL)</h1>
     <div class="info">
-        Esta página fue servida por <strong>Nginx</strong>, quien solicitó la respuesta a <strong>PHP</strong>, y <strong>PHP</strong> obtuvo los datos del contenedor <strong>MySQL</strong>, todo a través de la red <code>xarxa1</code>.
+        Esta página fue servida por <strong>Nginx</strong>, quien solicitó la respuesta a <strong>PHP</strong>, y <strong>PHP</strong> obtuvo los datos del contenedor <strong>MySQL</strong>, todo a través de la red <code>xarxa</code>.
     </div>
 
     <?php
