@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Moderna</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div data-previous-operand class="previous-operand"></div>
+            <div data-current-operand class="current-operand">0</div>
+        </div>
+        <button data-all-clear class="span-two">AC</button>
+        <button data-delete>DEL</button>
+        <button data-operator class="operator">÷</button>
+        <button data-number>1</button>
+        <button data-number>2</button>
+        <button data-number>3</button>
+        <button data-operator class="operator">*</button>
+        <button data-number>4</button>
+        <button data-number>5</button>
+        <button data-number>6</button>
+        <button data-operator class="operator">+</button>
+        <button data-number>7</button>
+        <button data-number>8</button>
+        <button data-number>9</button>
+        <button data-operator class="operator">-</button>
+        <button data-number class="span-two">0</button>
+        <button data-number>.</button>
+        <button data-equals class="operator">=</button>
+    </div>
+    <script>
+        // 🌟 PASO 1: Inyectar las variables de entorno aquí.
+        // Estas cadenas serán reemplazadas por el servidor/Docker (ej: '#1A237E' y '#4A148C').
+        const envColorA = 'COLOR_A_VAR';
+        const envColorB = 'COLOR_B_VAR';
+    </script>
+    <script src="script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# 1. BASE: La dependencia de S.O.
+FROM alpine:latest
+
+# 2. INSTALACIÓN: Instalación de software requerido (Nginx)
+RUN apk update && \
+    apk add nginx && \
+    rm -rf /var/cache/apk/* # --- A partir de aquí, la caché se invalida
+
+# 3. CONFIGURACIÓN: El requisito de configuración de Nginx
+# Colocamos el archivo de configuración personalizado.
+# Nginx típicamente usa /etc/nginx/nginx.conf o un archivo en /etc/nginx/conf.d/
+# Asumo que tienes un archivo de configuración Nginx llamado 'nginx.conf'.
+COPY config/nginx.conf /etc/nginx/nginx.conf
+
+# 4. CÓDIGO: El requisito de la aplicación (archivos web)
+# Copiamos todos los archivos del sitio.
+# La ruta por defecto de Nginx en Alpine suele ser /usr/share/nginx/html
+RUN mkdir -p /usr/share/nginx/calculadora/html
+COPY web/ /usr/share/nginx/calculadora/html
+
+# 5. INSTRUCCIÓN: Puerto
+# Nginx por defecto escucha en el puerto 80
+EXPOSE 80
+
+# 6. INSTRUCCIÓN: Comando para mantener el servidor en ejecución
+# Comando para ejecutar Nginx en primer plano (FOREGROUND)
+CMD ["nginx", "-g", "daemon off;"]
