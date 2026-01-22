@@ -93,9 +93,28 @@ ssh-keygen -t ed25519 -C "tu_email@ejemplo.com"
 2. **Copia la clave pública:**
 ```bash
 cat ~/.ssh/id_ed25519.pub
-
 ```
 
+3. **Clonar el repositorio**
+
+Para clonar el repositorio usaremos el comando:
+```bash
+git clone ssh://git@<IP>:<puerto>/<repositorio>.git
+```
+
+> Nota: Para no tener que escribir siempre el puerto y el usuario git, puedes crear (o editar) un archivo de configuración en tu PC Ubuntu:
+>
+>Abre el archivo: nano ~/.ssh/config
+>
+>Pega el siguiente contenido:
+```
+Host gitea-casa
+    HostName 192.168.201.6
+    User git
+    Port 222
+    IdentityFile ~/.ssh/id_rsa  # Asegúrate de que este sea el nombre de tu clave privada
+```
+> Así podrás clonar de forma mucho más sencilla: git clone gitea-casa:Koldo_AvalosSA/LimpiarPSOE.git
 
 3. **Añádela a Gitea:** Ve a `Configuración` -> `Claves SSH / GPG` -> `Añadir clave` y pega el contenido.
 
