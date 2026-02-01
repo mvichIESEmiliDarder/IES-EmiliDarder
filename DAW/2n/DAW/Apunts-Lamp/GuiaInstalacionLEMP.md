@@ -106,8 +106,8 @@ sudo systemctl restart nginx
 ```bash
 sudo nano /var/www/html/info.php
 ```
-
 *(Añadir `<?php phpinfo(); ?>`)*
+
 2. **Acceso:** Navegar a `http://dirección_ip/info.php`.
 
 ---
