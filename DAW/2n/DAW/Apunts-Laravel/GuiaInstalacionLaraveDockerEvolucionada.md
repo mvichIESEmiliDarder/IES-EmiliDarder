@@ -88,7 +88,7 @@ services:
     image: mysql:8.0
     container_name: laravel-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USER}  
       MYSQL_PASSWORD: ${DB_USER_PASSWORD}
@@ -108,6 +108,38 @@ volumes:
 
 ---
 
+
+## 3.5 Configuración de nginx.conf
+
+```bash                                      
+server {
+    listen 80;
+    index index.php index.html;
+    server_name localhost;
+    root /var/www/public; # Directorio raíz de Laravel dentro del contenedor
+
+    location / {
+        # Intenta servir el archivo, luego la carpeta y si no, redirige a index.php
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        # "app" es el nombre del servicio definido en docker-compose.yml
+        fastcgi_pass app:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
+
+    # Bloquear acceso a archivos sensibles como .env
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+---
+
 ## 4. Puesta en marcha automática
 
 Para evitar ejecutar comandos uno a uno, sigue este flujo lógico:
@@ -117,10 +149,10 @@ Para evitar ejecutar comandos uno a uno, sigue este flujo lógico:
 Crea un archivo `.env` en la raíz (fuera de `src/`) para Docker:
 
 ```env
-DB_DATABASE=laravel_db
-DB_PASSWORD=root_password  # Esta es la de root
-DB_USER=laravel_user       # Usuario para la app
-DB_USER_PASSWORD=user_pass # Contraseña para el usuario
+DB_DATABASE=laravel
+DB_ROOT_PASSWORD=toor
+DB_USER=iesemili
+DB_USER_PASSWORD=iesemili
 UID=1000
 GID=1000
 
@@ -150,15 +182,16 @@ Laravel generará su propio `.env` dentro de `src/`. Asegúrate de que los valor
 DB_CONNECTION=mysql
 DB_HOST=db
 DB_PORT=3306
-DB_DATABASE=laravel_db
-DB_USERNAME=root
-DB_PASSWORD=root_password
+DB_DATABASE=laravel
+DB_USERNAME=iesemili
+DB_PASSWORD=iesemili
 
 ```
 
 
 4. **Migraciones y Key:**
 ```bash
+docker compose exec app php artisan config:clear
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
 
