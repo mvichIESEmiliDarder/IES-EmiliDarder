@@ -1,4 +1,4 @@
-# Guía implementación de CI/CD con Gitea, Docker y Act Runner
+# Guía implementación de un proyecto básico HTML con CI/CD de Gitea, Docker y Act Runner
 
 Esta guía detalla el flujo de trabajo para desplegar una aplicación web estática de forma automática cada vez que se realiza un `push` al repositorio.
 
