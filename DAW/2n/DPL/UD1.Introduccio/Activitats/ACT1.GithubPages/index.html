@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joc de la Serp - Retro Arcade</title>
+  <!-- Font retro estil píxel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Fulla d'estils externa -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="crt-container">
+    <div class="header">
+      <h1>SNAKE</h1>
+      <div class="score-board">
+        <div class="score-box">
+          <span class="label">PUNTS</span>
+          <span id="score">0</span>
+        </div>
+        <div class="score-box">
+          <span class="label">RÈCORD</span>
+          <span id="high-score">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      
+      <!-- Efecte de línies de monitor CRT (Scanlines) -->
+      <div class="scanlines"></div>
+
+      <!-- Overlay d'Inici / Game Over -->
+      <div id="overlay" class="overlay">
+        <h2 id="overlay-title">SNAKE</h2>
+        <p id="overlay-msg">PREM PER COMENÇAR</p>
+        <button id="start-btn">JUGAR</button>
+      </div>
+    </div>
+
+    <!-- Controls tàctils per a dispositius mòbils -->
+    <div class="touch-controls">
+      <button class="btn-touch empty"></button>
+      <button class="btn-touch" id="btn-up">▲</button>
+      <button class="btn-touch empty"></button>
+      <button class="btn-touch" id="btn-left">◄</button>
+      <button class="btn-touch empty"></button>
+      <button class="btn-touch" id="btn-right">►</button>
+      <button class="btn-touch empty"></button>
+      <button class="btn-touch" id="btn-down">▼</button>
+      <button class="btn-touch empty"></button>
+    </div>
+
+    <div class="instructions">
+      <p>CONTROLS: TECLAS D'DIRECCIÓ O WASD</p>
+    </div>
+  </div>
+
+  <!-- Script extern -->
+  <script src="script.js"></script>
+</body>
+</html>
