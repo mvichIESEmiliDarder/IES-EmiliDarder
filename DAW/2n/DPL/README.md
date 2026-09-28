@@ -1,38 +1,50 @@
-# 🚀 Desplegament d'Aplicacions Web (DAW)
+# 🚀 Desplegament d'Aplicacions Web (DPL)
 
-Benvingut/da al repositori del mòdul **Desplegament d'Aplicacions Web**.
+Benvingut/da al repositori del mòdul **Desplegament d'Aplicacions Web (DPL)**, del segon curs del cicle formatiu de grau superior de **Desenvolupament d'Aplicacions Web (DAW)**.
 
-Aquest espai documenta i conté els projectes, configuracions i exercicis realitzats per automatitzar, gestionar i executar aplicacions web en entorns de producció.
+Aquí trobaràs les activitats del mòdul i els materials teòrics per aprendre a preparar, configurar i posar en funcionament aplicacions web. El mòdul recorre el camí des de l'entorn Linux i els servidors fins a la contenidorització i l'automatització dels desplegaments.
 
-***
+---
 
-## 📁 Contingut del Repositori
+## 📁 Contingut del repositori
 
-Aquest mòdul se centra en el cicle de vida del *deployment*. El contingut es divideix en les següents àrees clau:
+Els materials s'organitzen en unitats didàctiques que tracten aquestes àrees:
 
-### 🐳 Contenidorització
+### 🐧 Introducció i Linux
 
-* **Docker:** Fitxers `Dockerfile`, configuració d'imatges i ús de registres (Docker Hub, etc.).
-* **Docker Compose:** Definició de serveis multi-contenidor per a entorns de desenvolupament i prova.
+- Comandes bàsiques i treball amb l'entorn Linux.
 
-### ⚙️ Servidors i Entorns
+### 🌐 Servidors web
 
-* **Configuració de Servidors Web:** *Deployment* d'aplicacions usant servidors com **Nginx** o **Apache**.
-* **Servidors d'Aplicacions:** Configuració d'entorns d'execució (e.g., Node.js, PHP-FPM, Python/Gunicorn).
-* **Bases de Dades:** Scripts de configuració i connexió de bases de dades (e.g., MySQL/MariaDB, PostgreSQL).
+- Configuració d'**Apache** i **NGINX**, servidors virtuals, llocs web i mesures de seguretat.
 
-### 🔄 Integració i Desplegament Continus (CI/CD)
+### 🐳 Contenidors i Docker
 
-* **Automatització:** Scripts per a l'automatització de tasques de *build* i *deployment*.
-* **Pipelines CI/CD:** Configuracions bàsiques de *pipelines* usant eines de CI/CD (e.g., GitHub Actions, GitLab CI).
+- Imatges i contenidors, fitxers `Dockerfile`, volums, xarxes, **Docker Compose** i publicació d'imatges a Docker Hub.
 
-***
+### ⚙️ Servidors d'aplicacions
 
-## 🛠️ Requisits i Tecnologies
+- Entorns **LAMP** i **LEMP**, desplegament amb Docker i introducció a aplicacions amb **Laravel**.
 
-Els exercicis utilitzen principalment:
+### 🔀 Git i Markdown
 
-* **Linux** (Entorn de Servidor)
-* **Docker**
-* **Git**
-* Tecnologies de *stack* web (segons l'exercici: Node.js, Python, PHP, etc.)
+- Control de versions, branques, claus SSH i creació de documentació tècnica.
+
+### 🔄 Automatització i CI/CD
+
+- Configuració d'integració i desplegament continus i dels seus *runners*.
+
+Les unitats són autocontingudes, però els seus continguts es complementen. L'ordre d'algunes es pot adaptar: no és imprescindible seguir una única seqüència per treballar el mòdul.
+
+---
+
+## 🛠️ Requisits i tecnologies
+
+Al llarg de les activitats s'utilitzen principalment:
+
+- **Linux** i la línia d'ordres.
+- **Apache** i **NGINX**.
+- **Docker** i **Docker Compose**.
+- **Git** i **Markdown**.
+- Entorns **LAMP/LEMP** i **Laravel**.
+- Eines d'automatització i **CI/CD**.
