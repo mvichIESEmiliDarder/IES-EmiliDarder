@@ -117,6 +117,11 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
+Confirmar que tenim ben instal·lat el gestor de paquets pip a windows:
+```bash
+py -m pip --version
+```
+
 Instal·la Flask:
 
 ```bash
