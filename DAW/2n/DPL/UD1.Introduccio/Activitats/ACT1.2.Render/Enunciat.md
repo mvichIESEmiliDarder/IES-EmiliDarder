@@ -110,7 +110,7 @@ DPL_Act1.2.Render/
 
 Opcionalment, podem comprovar que funciona abans de desplegar-la.
 
-És recomanable utilitzar un entorn virtual:
+És recomanable utilitzar un entorn virtual sobretot a Ubuntu:
 
 ```bash
 python3 -m venv .venv
@@ -120,7 +120,8 @@ source .venv/bin/activate
 Instal·la Flask:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt (ubuntu)
+py -m pip install -r requirements.txt (windows)
 ```
 
 Executa:
