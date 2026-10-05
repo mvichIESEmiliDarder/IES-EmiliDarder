@@ -4,7 +4,13 @@
 
 En aquesta activitat desplegarem una aplicació web en un **servidor Linux (VPS)** utilitzant **Apache** com a servidor web.
 
-A diferència de l'activitat anterior amb Render, ara serem nosaltres els encarregats de preparar el servidor: ens hi connectarem remotament, instal·larem Apache i desplegarem l'aplicació.
+A diferència de les activitats anteriors, ara serem nosaltres els encarregats d'administrar el servidor: ens hi connectarem remotament, instal·larem Apache i publicarem la nostra aplicació.
+
+Durant l'activitat provarem **tres formes diferents de desplegar una aplicació**:
+
+1. Transferència de fitxers mitjançant **SFTP amb FileZilla**.
+2. Edició directa del servidor mitjançant **Remote SSH amb Visual Studio Code**.
+3. Desplegament mitjançant **Git i GitHub**.
 
 El professor proporcionarà a cada alumne:
 
@@ -12,33 +18,19 @@ El professor proporcionarà a cada alumne:
 - un nom d'usuari;
 - una contrasenya.
 
-El flux serà:
+Al final de l'activitat haurem experimentat tres maneres diferents de modificar el contingut que Apache publica:
 
 ```text
-Aplicació local
-        │
-        │ git push
-        ▼
-      GitHub
-        │
-        │ git clone / git pull
-        ▼
-       VPS
-        │
-        ▼
-      Apache
-        │
-        ▼
- Aplicació pública
+                  ┌── SFTP / FileZilla ──────┐
+                  │                           │
+Ordinador local ──┼── VS Code + SSH ─────────┼──► VPS ──► Apache ──► Web
+                  │                           │
+                  └── GitHub ──► Git ─────────┘
 ```
-
-En aquest cas **no utilitzarem una plataforma PaaS** que gestioni el servidor per nosaltres.
-
-Nosaltres serem els encarregats d'instal·lar i gestionar el servidor web.
 
 ---
 
-## 1. Connectar-se al servidor
+# 1. Connectar-se al servidor
 
 El servidor que utilitzarem no té entorn gràfic. Hi accedirem remotament mitjançant **SSH**.
 
@@ -102,7 +94,7 @@ Les comandes que executem després d'entrar per SSH s'estan executant **al servi
 
 ---
 
-## 2. Instal·lar Apache
+# 2. Instal·lar Apache
 
 Primer actualitza la informació dels repositoris:
 
@@ -136,11 +128,17 @@ q
 
 per sortir de la pantalla d'estat.
 
+També podem comprovar que Apache està escoltant al **port 80**:
+
+```bash
+sudo ss -ltnp | grep :80
+```
+
+El port 80 és el port utilitzat habitualment pel protocol HTTP.
+
 ---
 
-## 3. Comprovar Apache
-
-Ara Apache ja està executant-se al nostre servidor.
+# 3. Comprovar Apache
 
 Obre un navegador al teu ordinador i accedeix a:
 
@@ -150,12 +148,12 @@ http://IP_DEL_SERVIDOR
 
 Hauria d'aparèixer la pàgina per defecte d'Apache.
 
-Això significa que:
+Això significa que el servidor està acceptant peticions HTTP:
 
 ```text
 Navegador
     │
-    │ HTTP
+    │ HTTP :80
     ▼
 Servidor VPS
     │
@@ -166,11 +164,9 @@ Servidor VPS
 Pàgina web
 ```
 
-Apache està escoltant les peticions web i retornant el contingut corresponent.
-
 ---
 
-## 4. Localitzar la web d'Apache
+# 4. Localitzar la web d'Apache
 
 Torna al terminal on tenim oberta la connexió SSH.
 
@@ -180,7 +176,7 @@ Per defecte, Apache utilitza el directori:
 /var/www/html
 ```
 
-Podem consultar el seu contingut:
+Podem consultar-ne el contingut:
 
 ```bash
 ls -la /var/www/html
@@ -188,23 +184,55 @@ ls -la /var/www/html
 
 Hi trobarem el fitxer que correspon a la pàgina que acabem de veure al navegador.
 
-Podem comprovar-ho amb:
-
-```bash
-ls /var/www/html
-```
-
 Apache, per tant, està servint els fitxers que es troben dins de:
 
 ```text
 /var/www/html
 ```
 
+Podem eliminar la pàgina inicial d'Apache:
+
+```bash
+sudo rm /var/www/html/index.html
+```
+
 ---
 
-## 5. Preparar l'aplicació en local
+# 5. Preparar el directori per als desplegaments
 
-Ara torna al terminal del teu **ordinador local**.
+El directori `/var/www/html` pertany inicialment a l'usuari `root`.
+
+Ho podem comprovar amb:
+
+```bash
+ls -ld /var/www/html
+```
+
+Per poder treballar durant aquesta pràctica amb FileZilla, VS Code i Git sense haver d'utilitzar `sudo` constantment, assignarem el directori al nostre usuari.
+
+Executa:
+
+```bash
+sudo chown -R $USER:$USER /var/www/html
+```
+
+Comprova el resultat:
+
+```bash
+ls -ld /var/www/html
+```
+
+Ara el nostre usuari podrà crear, modificar i eliminar fitxers dins d'aquest directori.
+
+> Aquesta configuració simplifica l'entorn de pràctiques. En un servidor de producció real s'haurien de definir amb més cura els usuaris, grups i permisos del directori web.
+
+---
+
+# PART 1 — DESPLEGAMENT MITJANÇANT SFTP
+
+# 6. Preparar l'aplicació en local
+
+Torna al teu **ordinador local**.
 
 Crea una carpeta per a la pràctica:
 
@@ -221,11 +249,297 @@ Comprova el contingut:
 ls -la
 ```
 
-Abans de continuar, obre l'aplicació i comprova que els fitxers HTML, CSS, imatges i altres recursos funcionen correctament.
+Hi haurà d'haver, com a mínim, un fitxer:
+
+```text
+index.html
+```
+
+i els fitxers CSS, JavaScript, imatges o altres recursos que utilitzi l'aplicació.
 
 ---
 
-## 6. Crear el repositori Git
+# 7. Connectar FileZilla al servidor
+
+Obre **FileZilla** al teu ordinador.
+
+Crea una nova connexió utilitzant:
+
+```text
+Protocol: SFTP - SSH File Transfer Protocol
+Servidor: IP_DEL_SERVIDOR
+Port: 22
+Usuari: USUARI
+Contrasenya: CONTRASENYA
+```
+
+Utilitzarem **SFTP**, no FTP tradicional.
+
+SFTP permet transferir fitxers utilitzant una connexió SSH xifrada.
+
+```text
+Ordinador local
+      │
+      │ SFTP :22
+      ▼
+     VPS
+```
+
+Les mateixes credencials que utilitzam per entrar mitjançant SSH ens permeten accedir als fitxers mitjançant SFTP.
+
+---
+
+# 8. Copiar l'aplicació amb FileZilla
+
+A FileZilla veurem dues zones principals:
+
+```text
+Ordinador local        Servidor remot
+────────────────       ───────────────
+fitxers locals         fitxers del VPS
+```
+
+A la part corresponent al servidor, navega fins a:
+
+```text
+/var/www/html
+```
+
+A la part local, localitza:
+
+```text
+DPL_Act1.3.Apache
+```
+
+Selecciona **el contingut de la carpeta** i transfereix-lo a:
+
+```text
+/var/www/html
+```
+
+En acabar, al servidor hauríem de tenir:
+
+```text
+/var/www/html/
+├── index.html
+├── ...
+└── ...
+```
+
+---
+
+# 9. Comprovar el desplegament per SFTP
+
+Obre al navegador:
+
+```text
+http://IP_DEL_SERVIDOR
+```
+
+Ara hauria d'aparèixer la nostra aplicació.
+
+El procés que acabem de realitzar és:
+
+```text
+Ordinador local
+      │
+      │ SFTP
+      ▼
+/var/www/html
+      │
+      ▼
+    Apache
+      │
+      ▼
+  Navegador
+```
+
+Modifica ara algun text de l'aplicació **al teu ordinador** i torna a pujar el fitxer modificat mitjançant FileZilla.
+
+Actualitza el navegador i comprova que el canvi apareix.
+
+Aquest és un sistema de desplegament senzill: **copiam directament els fitxers modificats al servidor**.
+
+---
+
+# PART 2 — DESPLEGAMENT MITJANÇANT REMOTE SSH
+
+# 10. Instal·lar Remote SSH a Visual Studio Code
+
+Ara provarem una manera diferent de treballar.
+
+Obre **Visual Studio Code** al teu ordinador.
+
+Accedeix a l'apartat d'extensions i cerca:
+
+```text
+Remote - SSH
+```
+
+Instal·la l'extensió corresponent.
+
+Aquesta extensió permet que Visual Studio Code es connecti mitjançant SSH a un altre ordinador i treballi directament amb els seus fitxers.
+
+---
+
+# 11. Connectar VS Code al servidor
+
+Obre la paleta de comandes de Visual Studio Code:
+
+```text
+Ctrl + Shift + P
+```
+
+Cerca:
+
+```text
+Remote-SSH: Connect to Host...
+```
+
+Selecciona:
+
+```text
+Add New SSH Host...
+```
+
+Introdueix:
+
+```bash
+ssh USUARI@IP_DEL_SERVIDOR
+```
+
+Selecciona el fitxer de configuració SSH que proposa Visual Studio Code.
+
+Torna a executar:
+
+```text
+Remote-SSH: Connect to Host...
+```
+
+i selecciona el servidor que acabes d'afegir.
+
+Introdueix la contrasenya quan sigui necessari.
+
+Visual Studio Code obrirà una nova finestra connectada al VPS.
+
+---
+
+# 12. Obrir l'aplicació remota
+
+A la finestra remota de Visual Studio Code selecciona:
+
+```text
+File → Open Folder
+```
+
+i obre:
+
+```text
+/var/www/html
+```
+
+Ara Visual Studio Code mostrarà els fitxers que realment es troben **al servidor**.
+
+Això és important:
+
+```text
+VS Code
+   │
+   │ SSH
+   ▼
+Servidor VPS
+   │
+   ▼
+/var/www/html
+```
+
+No estam editant una còpia local.
+
+**Estam editant directament els fitxers del servidor.**
+
+---
+
+# 13. Modificar la web mitjançant Remote SSH
+
+Obre:
+
+```text
+index.html
+```
+
+Modifica algun element visible de la pàgina.
+
+Per exemple:
+
+- un títol;
+- un text;
+- un color;
+- una imatge.
+
+Guarda el fitxer:
+
+```text
+Ctrl + S
+```
+
+Ara actualitza el navegador:
+
+```text
+http://IP_DEL_SERVIDOR
+```
+
+El canvi apareixerà immediatament.
+
+No hem necessitat:
+
+```text
+FileZilla
+git push
+git pull
+```
+
+perquè estàvem modificant **directament el fitxer del servidor**.
+
+El procés és:
+
+```text
+Visual Studio Code
+        │
+        │ SSH
+        ▼
+       VPS
+        │
+        ▼
+ /var/www/html
+        │
+        ▼
+      Apache
+        │
+        ▼
+    Navegador
+```
+
+Aquest sistema és molt còmode per administrar servidors, revisar configuracions o fer modificacions puntuals.
+
+---
+
+# PART 3 — DESPLEGAMENT MITJANÇANT GIT I GITHUB
+
+# 14. Tornar al projecte local
+
+Ara utilitzarem un tercer sistema de desplegament.
+
+Torna al projecte del teu **ordinador local**:
+
+```bash
+cd DPL_Act1.3.Apache
+```
+
+A partir d'ara utilitzarem Git per controlar les versions de l'aplicació i GitHub com a repositori remot.
+
+---
+
+# 15. Crear el repositori Git
 
 Inicialitza el repositori:
 
@@ -257,25 +571,23 @@ Ara tenim:
 
 ```text
 Aplicació local
-        │
-        │ git push
-        ▼
-      GitHub
+      │
+      │ git push
+      ▼
+    GitHub
 ```
 
 ---
 
-## 7. Clonar l'aplicació al servidor
+# 16. Preparar el servidor
 
-Torna a connectar-te al VPS mitjançant SSH si ja havies tancat la connexió:
+Connecta't al VPS:
 
 ```bash
 ssh USUARI@IP_DEL_SERVIDOR
 ```
 
-Per poder descarregar el projecte des de GitHub necessitarem tenir Git instal·lat al servidor.
-
-Comprova si està instal·lat:
+Comprova si Git està instal·lat:
 
 ```bash
 git --version
@@ -287,22 +599,16 @@ Si no està instal·lat:
 sudo apt install git
 ```
 
-Ara anirem al directori on Apache publica les pàgines:
+Com que `/var/www/html` conté els fitxers que havíem desplegat amb els sistemes anteriors, els eliminarem abans de clonar el repositori:
 
 ```bash
-cd /var/www
+rm -rf /var/www/html
 ```
 
-Elimina la web que Apache instal·la per defecte:
+Ara clonarem el repositori indicant que el directori de destinació ha de ser `/var/www/html`:
 
 ```bash
-sudo rm -rf /var/www/html
-```
-
-Clona el teu repositori i indica que volem guardar-lo com a `html`:
-
-```bash
-sudo git clone URL_DEL_REPOSITORI html
+git clone URL_DEL_REPOSITORI /var/www/html
 ```
 
 Comprova el resultat:
@@ -311,11 +617,17 @@ Comprova el resultat:
 ls -la /var/www/html
 ```
 
-Ara dins aquest directori haurien d'aparèixer els fitxers de la nostra aplicació.
+Ara també apareixerà:
+
+```text
+.git
+```
+
+Això ens indica que `/var/www/html` és ara un **repositori Git**.
 
 ---
 
-## 8. Comprovar el desplegament
+# 17. Comprovar el desplegament
 
 Obre novament al navegador:
 
@@ -323,44 +635,34 @@ Obre novament al navegador:
 http://IP_DEL_SERVIDOR
 ```
 
-Ara ja no hauria d'aparèixer la pàgina per defecte d'Apache.
+Hauria d'aparèixer la nostra aplicació web.
 
-Hauria d'aparèixer **la nostra aplicació web**.
-
-El flux complet que acabem de realitzar és:
+Ara el desplegament s'ha realitzat de manera diferent:
 
 ```text
 Ordinador local
-        │
-        │ git push
-        ▼
-      GitHub
-        │
-        │ git clone
-        ▼
-       VPS
-        │
-        ▼
- /var/www/html
-        │
-        ▼
-      Apache
-        │
-        ▼
-    Navegador
-```
-
-En aquest cas Apache està llegint els fitxers de:
-
-```text
+      │
+      │ git push
+      ▼
+    GitHub
+      │
+      │ git clone
+      ▼
+     VPS
+      │
+      ▼
 /var/www/html
+      │
+      ▼
+    Apache
+      │
+      ▼
+  Navegador
 ```
-
-i els envia al navegador quan rep una petició HTTP.
 
 ---
 
-## 9. Modificar l'aplicació
+# 18. Modificar l'aplicació
 
 Ara farem una modificació per comprovar com podem actualitzar una aplicació que ja està desplegada.
 
@@ -371,14 +673,6 @@ cd DPL_Act1.3.Apache
 ```
 
 Modifica algun element visible de l'aplicació.
-
-Per exemple:
-
-- un títol;
-- un text;
-- un color;
-- una imatge;
-- o qualsevol altre element fàcilment identificable.
 
 Comprova els canvis:
 
@@ -400,10 +694,10 @@ Ara tenim:
 
 ```text
 Ordinador local
-        │
-        │ git push
-        ▼
-      GitHub
+      │
+      │ git push
+      ▼
+    GitHub
 ```
 
 Però si obrim:
@@ -414,13 +708,13 @@ http://IP_DEL_SERVIDOR
 
 **la web del servidor encara no s'ha actualitzat.**
 
-A diferència de Render, GitHub i el nostre VPS no estan sincronitzats automàticament.
+GitHub i el nostre VPS no estan sincronitzats automàticament.
 
 ---
 
-## 10. Actualitzar l'aplicació al servidor
+# 19. Actualitzar l'aplicació al servidor
 
-Connecta't novament al VPS:
+Connecta't al VPS:
 
 ```bash
 ssh USUARI@IP_DEL_SERVIDOR
@@ -432,7 +726,7 @@ Accedeix al directori de l'aplicació:
 cd /var/www/html
 ```
 
-Podem comprovar que aquest directori és un repositori Git:
+Comprova l'estat del repositori:
 
 ```bash
 git status
@@ -441,71 +735,123 @@ git status
 Ara descarrega els darrers canvis publicats a GitHub:
 
 ```bash
-sudo git pull
+git pull
 ```
 
 Git descarregarà els canvis i actualitzarà els fitxers del servidor.
 
----
-
-## 11. Comprovar la nova versió
-
-Torna al navegador i actualitza:
+Actualitza el navegador:
 
 ```text
 http://IP_DEL_SERVIDOR
 ```
 
-Ara haurien d'aparèixer els canvis que hem realitzat.
+Ara haurien d'aparèixer els canvis.
 
-El procés d'actualització ha estat:
+El procés complet d'actualització ha estat:
 
 ```text
 Modificar codi
-      │
-      ▼
-  git commit
-      │
-      ▼
-   git push
-      │
-      ▼
-    GitHub
-      │
-      ▼
-   git pull
-      │
-      ▼
-     VPS
-      │
-      ▼
-    Apache
+     │
+     ▼
+ git commit
+     │
+     ▼
+  git push
+     │
+     ▼
+   GitHub
+     │
+     ▼
+  git pull
+     │
+     ▼
+    VPS
+     │
+     ▼
+   Apache
 ```
 
-Apache no necessita que tornem a copiar manualment tots els fitxers.
+---
 
-Git s'encarrega de descarregar únicament els canvis del repositori i actualitzar la còpia que tenim al servidor.
+# 20. Comparació dels tres sistemes
+
+Durant aquesta activitat hem desplegat la mateixa aplicació utilitzant tres sistemes diferents.
+
+| Sistema | Funcionament | Avantatge principal |
+|---|---|---|
+| **SFTP / FileZilla** | Copiam fitxers de local al servidor | Senzill i visual |
+| **VS Code Remote SSH** | Editam directament els fitxers del servidor | Còmode per administrar i modificar |
+| **Git + GitHub** | Local → GitHub → servidor | Control de versions i traçabilitat |
+
+Amb **SFTP**:
+
+```text
+Local ── SFTP ──► VPS
+```
+
+Amb **Remote SSH**:
+
+```text
+VS Code ── SSH ──► VPS
+                    ▲
+                    │
+                 edició
+                 directa
+```
+
+Amb **GitHub**:
+
+```text
+Local ── git push ──► GitHub ── git pull ──► VPS
+```
+
+Els tres sistemes poden acabar modificant els mateixos fitxers:
+
+```text
+/var/www/html
+```
+
+però el procés utilitzat per arribar-hi és diferent.
 
 ---
 
 # Resultat final
 
-En acabar l'activitat disposarem de:
+En acabar l'activitat haurem après a:
+
+- connectar-nos remotament a un servidor mitjançant SSH;
+- instal·lar i comprovar Apache;
+- identificar el port utilitzat pel servei HTTP;
+- identificar `/var/www/html` com a directori de publicació;
+- entendre els permisos necessaris per modificar els fitxers d'una web;
+- transferir una aplicació mitjançant SFTP;
+- utilitzar FileZilla per gestionar fitxers remots;
+- connectar Visual Studio Code a un servidor mitjançant Remote SSH;
+- editar directament una aplicació ubicada en un servidor;
+- utilitzar Git per controlar les versions d'una aplicació;
+- publicar el projecte a GitHub;
+- desplegar-lo amb `git clone`;
+- actualitzar-lo posteriorment amb `git pull`;
+- comparar diferents estratègies de desplegament.
+
+Conceptualment hem passat per tres formes de desplegament:
 
 ```text
-Ordinador local
-      │
-      │ git push
-      ▼
-    GitHub
-      │
-      │ git pull
-      ▼
-     VPS
-      │
-      ▼
-    Apache
-      │
-      ▼
-Aplicació web
+1. CÒPIA DIRECTA
+
+Local ── SFTP ──► VPS ──► Apache
+
+
+2. EDICIÓ REMOTA
+
+VS Code ── SSH ──► VPS ──► Apache
+
+
+3. CONTROL DE VERSIONS
+
+Local ──► GitHub ──► VPS ──► Apache
+          Git          Git
 ```
+
+Aquests tres sistemes ens permeten veure l'evolució des d'un **desplegament manual de fitxers** fins a un desplegament basat en **control de versions**, que servirà de base per entendre posteriorment sistemes de desplegament més automatitzats.
