@@ -1,8 +1,13 @@
+# Activitat 3.3 — Gestió i anàlisi de certificats web
+
+**Cicle formatiu:** 2n de SMX (Sistemes Microinformàtics i Xarxes)  
+**Mòdul:** Seguretat informàtica  
+**Tema:** Criptografia, certificats digitals i TLS  
+**Eina:** Navegador web i, opcionalment, terminal Linux
+
 ---
 
-# Part II. Enunciat resolt
-
-> **Nota per al professorat:** Els valors exactes depenen del lloc públic triat, de la configuració del Proxmox i de la data de consulta. La resolució indica què s’ha d’observar; cal substituir els exemples pels valors reals vistos a classe. En particular, un avís del navegador no demostra per si sol que el certificat sigui autosignat: també pot estar caducat, tenir un nom incorrecte o no encadenar amb una CA de confiança.
+> **Nota:** Els valors exactes depenen del lloc públic triat, de la configuració del Proxmox i de la data de consulta. La resolució indica què s’ha d’observar; cal substituir els exemples pels valors reals vistos a classe. En particular, un avís del navegador no demostra per si sol que el certificat sigui autosignat: també pot estar caducat, tenir un nom incorrecte o no encadenar amb una CA de confiança.
 
 ## 1. Part A — Certificat d’una web de confiança
 

@@ -1,4 +1,4 @@
-# Pràctica de Seguretat Informàtica: Criptografia amb GPG en Linux
+# # Activitat 3.1. Criptografia amb GPG en Linux
 
 **Cicle Formatiu:** 2n de SMR (Sistemes Microinformàtics i Xarxes)  
 **Mòdul:** Seguretat Informàtica  
